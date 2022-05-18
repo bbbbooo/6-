@@ -8,6 +8,7 @@ var pc;
 var remoteStream;
 var turnReady;
 
+
 var pcConfig = {
   'iceServers': [{
     'urls': 'stun:stun.l.google.com:19302'
@@ -22,7 +23,7 @@ var sdpConstraints = {
 
 /////////////////////////////////////////////
 
-var room = 'fooo';
+var room = 'foo';
 // Could prompt for room name:
 // room = prompt('Enter room name:');
 
@@ -93,14 +94,35 @@ socket.on('message', function(message) {
 var localVideo = document.querySelector('#localVideo');
 var remoteVideo = document.querySelector('#remoteVideo');
 
-navigator.mediaDevices.getUserMedia({
-  audio: false,
-  video: true
-})
+const mediaOption = 
+{ 
+  audio: true, video: 
+  { 
+    mandatory: 
+    { 
+      maxWidth: 160, maxHeight: 120, maxFrameRate: 5, 
+    },
+     
+    optional: [ 
+      { 
+        facingMode: 'user' 
+      },
+     ], 
+    }, 
+};
+
+
+
+
+
+navigator.mediaDevices.getUserMedia(mediaOption)
 .then(gotStream)
 .catch(function(e) {
   alert('getUserMedia() error: ' + e.name);
 });
+
+
+
 
 function gotStream(stream) {
   console.log('Adding local stream.');
@@ -232,6 +254,9 @@ function handleRemoteStreamAdded(event) {
   console.log('Remote stream added.');
   remoteStream = event.stream;
   remoteVideo.srcObject = remoteStream;
+
+  remoteVideo.classList.add("remoteVideoInChatting");
+  localVideo.classList.add("localVideoInChatting");
 }
 
 function handleRemoteStreamRemoved(event) {
@@ -245,6 +270,10 @@ function hangup() {
 }
 
 function handleRemoteHangup() {
+  remoteVideo.classList.remove("remoteVideoInChatting");
+  localVideo.classList.remove("localVideoInChatting");
+
+  
   console.log('Session terminated.');
   stop();
   isInitiator = false;

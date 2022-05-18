@@ -26,9 +26,20 @@ io.sockets.on('connection', function(socket) {
 
   socket.on('message', function(message) {
     log('Client said: ', message);
-    // for a real app, would be room-only (not broadcast)
+
+    if (message==="bye" && socket.rooms['foo']) {
+      io.of('/').in('foo').clients((error, socketIds) => {
+          if (error) throw error;
+
+          socketIds.forEach(socketId => {
+              io.sockets.sockets[socketId].leave('foo');
+          });
+      });
+  }
+
     socket.broadcast.emit('message', message);
   });
+
 
   socket.on('create or join', function(room) {
     log('Received request to create or join room ' + room);
@@ -41,13 +52,14 @@ io.sockets.on('connection', function(socket) {
       socket.join(room);
       log('Client ID ' + socket.id + ' created room ' + room);
       socket.emit('created', room, socket.id);
-
+      console.log('created');
     } else if (numClients === 1) {
       log('Client ID ' + socket.id + ' joined room ' + room);
       io.sockets.in(room).emit('join', room);
       socket.join(room);
       socket.emit('joined', room, socket.id);
       io.sockets.in(room).emit('ready');
+      console.log('joined');
     } else { // max two clients
       socket.emit('full', room);
     }
